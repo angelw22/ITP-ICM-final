@@ -12,7 +12,7 @@ let r, g, b;
 
 
 // const url = "ws://localhost:9876/myWebsocket"
-const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/myWebsocket";
+const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com";
 const mywsServer = new WebSocket(url)
 
 function setup() {
@@ -37,9 +37,17 @@ function setup() {
   //   otherPlayers = [{color: color(255, 0, 0), x: 100, y: 200}, {color: color(0, 255, 0), x: 200, y: 300}]
   
   // 
+
+
+	if (mywsServer.readyState == 1) {
+		console.log("open, sending init ", {type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}})
+		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
+	}
+
 }
 
 function draw() {
+	console.log(mywsServer.readyState);
   background(0);
 
 	//loop through all other players to draw them + check if there is a connection
@@ -56,7 +64,7 @@ function draw() {
 		} 
 
 		noStroke();
-		
+		console.log("other players", otherPlayers)
 		//draw other player
 		fill(color(value.r, value.g, value.b));
     ellipse(value.x, value.y, 40, 40);
@@ -149,8 +157,6 @@ function draw() {
 		}
 	}
   
-	console.log(mywsServer)
-
   if ((prevX !== posX || prevY !== posY) && mywsServer.readyState == WebSocket.OPEN) {
     mywsServer.send(JSON.stringify({type: "update", data: {x: posX, y:posY}}));
   }
@@ -161,11 +167,10 @@ function draw() {
 }
 
 
+
 mywsServer.onopen = function() {
-		console.log("open")
-		if (mywsServer.readyState == WebSocket.OPEN) {
-			mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
-		}
+		console.log("open, sending init ", {type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}})
+		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 
 
 		mywsServer.onclosed = function() {
