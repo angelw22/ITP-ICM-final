@@ -10,8 +10,9 @@ let mainPlayerSocketID;
 let temporarilyDisabled = true;
 let r, g, b;
 
-const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/myWebsocket"
+
 // const url = "ws://localhost:9876/myWebsocket"
+const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/";
 const mywsServer = new WebSocket(url)
 
 function setup() {
@@ -20,18 +21,22 @@ function setup() {
 
 	posX = random(0, windowWidth);
 	posY = random(0, windowHeight);
-
+  
   r = random(0, 240);
   g = random(0, 240);
   b = random(0, 240);
-
+  
   mainColor = color(r, g, b);
 
   mainPlayer = createGraphics(90,90);
 
 
 	//all player array format
-
+  mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
+  
+  //   otherPlayers = [{color: color(255, 0, 0), x: 100, y: 200}, {color: color(0, 255, 0), x: 200, y: 300}]
+  
+  // 
 }
 
 function draw() {
@@ -51,12 +56,12 @@ function draw() {
 		} 
 
 		noStroke();
-
+		
 		//draw other player
 		fill(color(value.r, value.g, value.b));
     ellipse(value.x, value.y, 40, 40);
 	}
-
+  
 
   if (keyIsDown(65)) {
     posX -= 5;
@@ -76,16 +81,17 @@ function draw() {
   mainPlayer.angleMode(DEGREES);
   mainPlayer.ellipse(45, 45, 50, 50);
   mainPlayer.triangle(75, 55, 75, 35, 90, 45);
-
-
-
+  
+  
+  
   push();
   translate(posX, posY)
+  // angle = atan2(mouseY - height / 2, mouseX - width / 2);
   angle = atan2(mouseY - posY, mouseX - posX);
   rotate(angle)
   image(mainPlayer, 0, 0);
-
-
+  
+  
   if (mouseIsPressed) {
     if (!temporarilyDisabled) {
       lineLength += 5 ;
@@ -94,33 +100,34 @@ function draw() {
     lineLength = 0
     temporarilyDisabled = false;
   }
-
-
+    
+  
   let actualX = posX + ((lineLength +50)  * Math.cos(angle))
   let actualY = posY + ((lineLength +50)  * Math.sin(angle))
   stroke(mainColor);
   strokeWeight(3);
   line(50,0, lineLength + 50, 0)
-
+  
   pop(); 
 
-	// ellipse to track the line cast
+	//ellipse to track the line cast
   // ellipse(actualX, actualY, 10, 10)
-
+  
 
 
 	for (const [key, value] of Object.entries(otherPlayers)) {
+		// let data = JSON.parse(value)
 
 		//value format: {r: r, g: g, b: b, x: posX, y:posY}
 		if (actualX <= value.x + 20 && actualX >= value.x - 20 && actualY <= value.y + 20 && actualY >= value.y - 20) {
-
+			
 			console.log('check', value)
 
 			if (!temporarilyDisabled) {
 				if (value.connections && value.connections[mainPlayerSocketID]) {
 					console.log("remove time");
 					mywsServer.send(JSON.stringify({type: "disconnect", data: key}));
-
+	
 					//send socket to disconnect 
 				} else {
 					console.log("hit");
@@ -133,27 +140,53 @@ function draw() {
 					console.log("new color is", newColor, "indiv is", red(newColor), green(newColor), blue(newColor))
 					//send other id and new color to remember connector's color
 					mywsServer.send(JSON.stringify({type: "connect", data: [key, red(newColor), green(newColor), blue(newColor)]}));
-
+	
 				}
 				temporarilyDisabled = true
 			}
-
-
+	
+			
 		}
 	}
+  
+  
+  // for (let i = 0; i < otherPlayers.length; i++) { 
+  //   // if other players are hit
+  //   if (actualX <= otherPlayers[i].x + 20 && actualX >= otherPlayers[i].x - 20 && actualY <= otherPlayers[i].y + 20 && actualY >= otherPlayers[i].y - 20) {
+      
+  //     //if there is an existing connection, remove it. Else, create an in-between color and "taint" the other player
+  //     if (otherPlayers[i].connection) {
+  //       otherPlayers[i].connection = undefined;
+  //       console.log(otherPlayers[i]);
+  //     } else if (!temporarilyDisabled) {
+  //       console.log("hit")
+  //       lineLength = 0;
+  //       otherPlayers[i].connection = lerpColor(mainColor, otherPlayers[i].color, 0.55);   
+  //       otherPlayers[i].color = lerpColor(mainColor, otherPlayers[i].color, 0.75);  
+  //     }
+  //     temporarilyDisabled = true;
+         
+  //   }
+  // }
 
-
-  if (prevX !== posX || prevY !== posY && mywsServer) {
+  if (prevX !== posX || prevY !== posY) {
     mywsServer.send(JSON.stringify({type: "update", data: {x: posX, y:posY}}));
   }
 
   prevX = posX, 
   prevY = posY;
-
+  
 }
 
-mywsServer.onopen = () => {
 
+mywsServer.onopen = function() {
+    // sendBtn.disabled = false;
+    // mywsServer.send("joined");
+    mywsServer.send(JSON.stringify())
+}
+
+mywsServer.onclosed = function() {
+    mywsServer.send("left");
 }
 
 //handling message event
@@ -164,8 +197,6 @@ mywsServer.onmessage = function(event) {
 		if (msg.type == "firstCon") {
 			mainPlayerSocketID = msg.data;
 			console.log("main player sock id is", mainPlayerSocketID)
-			mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
-
 		}
 		if (msg.type == "update") {
 			//format: data: {r: r, g: g, b: b, x: posX, y:posY, connections: [id: {r: _, g: _, b: _}]}
@@ -179,3 +210,16 @@ mywsServer.onmessage = function(event) {
 		}
 	}
 }
+
+
+
+
+
+// function createPlayer (player, color) {
+//   playerObjs[player].imageMode(CENTER)
+//   playerObjs[player].angleMode(DEGREES);
+//   playerObjs[player].fill("blue");
+//   playerObjs[player].background(0);
+//   playerObjs[player].ellipse(45, 45, 50, 50);
+//   playerObjs[player].triangle(70, 65, 70, 25, 90, 45);
+// }
