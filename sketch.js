@@ -11,7 +11,7 @@ let temporarilyDisabled = true;
 let r, g, b;
 
 //dev url: "ws://localhost:9876/myWebsocket" 
-const url = "https://icm-finals-backend-b895b729e5ed.herokuapp.com/9876"
+const url = "ws://icm-finals-backend-b895b729e5ed.herokuapp.com/9876"
 const mywsServer = new WebSocket(url)
 
 function setup() {
