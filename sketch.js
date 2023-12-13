@@ -10,7 +10,7 @@ let mainPlayerSocketID;
 let temporarilyDisabled = true;
 let r, g, b;
 
-const url = "https://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/myWebsocket"
+const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/myWebsocket"
 // const url = "ws://localhost:9876/myWebsocket"
 const mywsServer = new WebSocket(url)
 
