@@ -40,14 +40,12 @@ function setup() {
 
 
 	if (mywsServer.readyState == 1) {
-		console.log("open, sending init ", {type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}})
 		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 	}
 
 }
 
 function draw() {
-	console.log(mywsServer.readyState);
   background(0);
 
 	//loop through all other players to draw them + check if there is a connection
@@ -64,7 +62,6 @@ function draw() {
 		} 
 
 		noStroke();
-		console.log("other players", otherPlayers)
 		//draw other player
 		fill(color(value.r, value.g, value.b));
     ellipse(value.x, value.y, 40, 40);
@@ -129,8 +126,6 @@ function draw() {
 		//value format: {r: r, g: g, b: b, x: posX, y:posY}
 		if (actualX <= value.x + 20 && actualX >= value.x - 20 && actualY <= value.y + 20 && actualY >= value.y - 20) {
 			
-			console.log('check', value)
-
 			if (!temporarilyDisabled) {
 				if (value.connections && value.connections[mainPlayerSocketID]) {
 					console.log("remove time");
@@ -138,14 +133,13 @@ function draw() {
 	
 					//send socket to disconnect 
 				} else {
-					console.log("hit");
+					// console.log("hit");
 					lineLength = 0;
 					let otherPlayerColor = color(value.r, value.g, value.b);
 					let newColor = lerpColor(mainColor, otherPlayerColor, 0.5);
 					otherPlayers[key].r = red(newColor);
 					otherPlayers[key].g = green(newColor);
 					otherPlayers[key].b = blue(newColor)
-					console.log("new color is", newColor, "indiv is", red(newColor), green(newColor), blue(newColor))
 					//send other id and new color to remember connector's color
 					mywsServer.send(JSON.stringify({type: "connect", data: [key, red(newColor), green(newColor), blue(newColor)]}));
 	
@@ -169,7 +163,7 @@ function draw() {
 
 
 mywsServer.onopen = function() {
-		console.log("open, sending init ", {type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}})
+		// console.log("open, sending init ", {type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}})
 		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 
 
@@ -184,15 +178,14 @@ mywsServer.onopen = function() {
 		if (msg !== undefined) {
 			if (msg.type == "firstCon") {
 				mainPlayerSocketID = msg.data;
-				console.log("main player sock id is", mainPlayerSocketID)
+				console.log("main player socket id is", mainPlayerSocketID)
 			}
 			if (msg.type == "update") {
 				//format: data: {r: r, g: g, b: b, x: posX, y:posY, connections: [id: {r: _, g: _, b: _}]}
 				otherPlayers = msg.data;
 			}
 			if (msg.type == "changeColor") {
-				console.log('pre color', mainColor)
-				console.log("got change color", msg.data[0], msg.data[1], msg.data[2])
+
 				mainColor = color(msg.data[0], msg.data[1], msg.data[2]);
 				mainPlayer.fill(mainColor);
 			}
