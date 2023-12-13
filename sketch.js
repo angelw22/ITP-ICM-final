@@ -29,15 +29,10 @@ function setup() {
 
   mainPlayer = createGraphics(90,90);
 
-
+  mywsServer = new WebSocket(url)
 }
 
 function draw() {
-	if (!mywsServer) {
-		mywsServer = new WebSocket(url)
-	}
-
-
   background(0);
 
 	//loop through all other players to draw them + check if there is a connection
