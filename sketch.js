@@ -35,7 +35,6 @@ function setup() {
 function draw() {
 	if (!mywsServer) {
 		mywsServer = new WebSocket(url)
-		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 	}
 
 
@@ -154,6 +153,10 @@ function draw() {
   prevX = posX, 
   prevY = posY;
   
+}
+
+mywsServer.onopen = function() {
+	mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 }
 
 //handling message event
