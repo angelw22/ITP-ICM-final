@@ -10,9 +10,9 @@ let mainPlayerSocketID;
 let temporarilyDisabled = true;
 let r, g, b;
 
-//dev url: "ws://localhost:9876/myWebsocket" 
-const url = "ws://icm-finals-backend-b895b729e5ed.herokuapp.com/9876"
-const mywsServer = new WebSocket(url)
+//dev url:"ws://localhost:9876/myWebsocket" 
+const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com/9876"
+let mywsServer;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -30,12 +30,15 @@ function setup() {
   mainPlayer = createGraphics(90,90);
 
 
-	//all player array format
-  mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
-  
 }
 
 function draw() {
+	if (!mywsServer) {
+		mywsServer = new WebSocket(url)
+		mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
+	}
+
+
   background(0);
 
 	//loop through all other players to draw them + check if there is a connection
