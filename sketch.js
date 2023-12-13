@@ -32,7 +32,7 @@ function setup() {
 
 
 	//all player array format
-  mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
+  // mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
   
   //   otherPlayers = [{color: color(255, 0, 0), x: 100, y: 200}, {color: color(0, 255, 0), x: 200, y: 300}]
   
@@ -149,27 +149,8 @@ function draw() {
 		}
 	}
   
-  
-  // for (let i = 0; i < otherPlayers.length; i++) { 
-  //   // if other players are hit
-  //   if (actualX <= otherPlayers[i].x + 20 && actualX >= otherPlayers[i].x - 20 && actualY <= otherPlayers[i].y + 20 && actualY >= otherPlayers[i].y - 20) {
-      
-  //     //if there is an existing connection, remove it. Else, create an in-between color and "taint" the other player
-  //     if (otherPlayers[i].connection) {
-  //       otherPlayers[i].connection = undefined;
-  //       console.log(otherPlayers[i]);
-  //     } else if (!temporarilyDisabled) {
-  //       console.log("hit")
-  //       lineLength = 0;
-  //       otherPlayers[i].connection = lerpColor(mainColor, otherPlayers[i].color, 0.55);   
-  //       otherPlayers[i].color = lerpColor(mainColor, otherPlayers[i].color, 0.75);  
-  //     }
-  //     temporarilyDisabled = true;
-         
-  //   }
-  // }
 
-  if (prevX !== posX || prevY !== posY) {
+  if ((prevX !== posX || prevY !== posY) && mywsServer.readyState == WebSocket.OPEN) {
     mywsServer.send(JSON.stringify({type: "update", data: {x: posX, y:posY}}));
   }
 
@@ -180,35 +161,39 @@ function draw() {
 
 
 mywsServer.onopen = function() {
-    // sendBtn.disabled = false;
-    // mywsServer.send("joined");
-    mywsServer.send(JSON.stringify())
-}
-
-mywsServer.onclosed = function() {
-    mywsServer.send("left");
-}
-
-//handling message event
-mywsServer.onmessage = function(event) {
-	const msg = JSON.parse(event.data);
-	// console.log("from server", msg);
-	if (msg !== undefined) {
-		if (msg.type == "firstCon") {
-			mainPlayerSocketID = msg.data;
-			console.log("main player sock id is", mainPlayerSocketID)
+		console.log("open")
+		if (mywsServer.readyState == WebSocket.OPEN) {
+			mywsServer.send(JSON.stringify({type: "init", data: {r: r, g: g, b: b, x: posX, y:posY}}));
 		}
-		if (msg.type == "update") {
-			//format: data: {r: r, g: g, b: b, x: posX, y:posY, connections: [id: {r: _, g: _, b: _}]}
-			otherPlayers = msg.data;
-		}
-		if (msg.type == "changeColor") {
-			console.log('pre color', mainColor)
-			console.log("got change color", msg.data[0], msg.data[1], msg.data[2])
-			mainColor = color(msg.data[0], msg.data[1], msg.data[2]);
-			mainPlayer.fill(mainColor);
+
+
+		mywsServer.onclosed = function() {
+			mywsServer.send("left");
+	}
+	
+	//handling message event
+	mywsServer.onmessage = function(event) {
+		const msg = JSON.parse(event.data);
+		// console.log("from server", msg);
+		if (msg !== undefined) {
+			if (msg.type == "firstCon") {
+				mainPlayerSocketID = msg.data;
+				console.log("main player sock id is", mainPlayerSocketID)
+			}
+			if (msg.type == "update") {
+				//format: data: {r: r, g: g, b: b, x: posX, y:posY, connections: [id: {r: _, g: _, b: _}]}
+				otherPlayers = msg.data;
+			}
+			if (msg.type == "changeColor") {
+				console.log('pre color', mainColor)
+				console.log("got change color", msg.data[0], msg.data[1], msg.data[2])
+				mainColor = color(msg.data[0], msg.data[1], msg.data[2]);
+				mainPlayer.fill(mainColor);
+			}
 		}
 	}
+	
+	
 }
 
 
