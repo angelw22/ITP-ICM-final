@@ -12,7 +12,7 @@ let r, g, b;
 
 
 // const url = "ws://localhost:9876/myWebsocket"
-const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/";
+const url = "wss://icm-finals-backend-b895b729e5ed.herokuapp.com:9876/myWebsocket";
 const mywsServer = new WebSocket(url)
 
 function setup() {
@@ -149,6 +149,7 @@ function draw() {
 		}
 	}
   
+	console.log(mywsServer)
 
   if ((prevX !== posX || prevY !== posY) && mywsServer.readyState == WebSocket.OPEN) {
     mywsServer.send(JSON.stringify({type: "update", data: {x: posX, y:posY}}));
